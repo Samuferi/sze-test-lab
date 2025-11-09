@@ -1,0 +1,21 @@
+{
+	"id": "79ff988b-e546-4df1-ae08-6a7f7aadff0d",
+	"name": "test_4_env",
+	"values": [
+		{
+			"key": "baseURL",
+			"value": "http://127.0.0.1:5000",
+			"type": "default",
+			"enabled": true
+		},
+		{
+			"key": "newTodoId",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2025-11-09T21:04:16.888Z",
+	"_postman_exported_using": "Postman/11.70.6"
+}

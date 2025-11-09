@@ -1,0 +1,222 @@
+{
+	"info": {
+		"_postman_id": "a88b85db-c13c-4903-85fa-132621303c75",
+		"name": "test_4_c",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "49799657",
+		"_collection_link": "https://samuferi-2682387.postman.co/workspace/Samu-Ferenc's-Workspace~253faae7-6952-4d18-8e46-75b230ed0197/collection/49799657-a88b85db-c13c-4903-85fa-132621303c75?action=share&source=collection_link&creator=49799657"
+	},
+	"item": [
+		{
+			"name": "GET /todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is an array\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an('array');\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Array has at least 2 initial items\", function () {\r",
+							"    pm.expect(pm.response.json().length).to.be.at.least(2);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/todos",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"todos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST /todos",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 201 (Created)\", function () {\r",
+							"    pm.response.to.have.status(201);\r",
+							"});\r",
+							"\r",
+							"const responseJson = pm.response.json();\r",
+							"pm.test(\"Set newTodoId for subsequent tests\", function () {\r",
+							"    pm.environment.set(\"newTodoId\", responseJson.id);\r",
+							"    console.log(\"New Todo ID saved: \" + pm.collectionVariables.get(\"newTodoId\"));\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"task\": \"Postman teszteles beallitasa\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/todos",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"todos"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET /todos/{{newTodoId}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const responseJson = pm.response.json();\r",
+							"pm.test(\"Returned ID matches the saved ID\", function () {\r",
+							"    // Ensure the ID of the fetched todo matches the one we created\r",
+							"    pm.expect(responseJson.id).to.eql(pm.environment.get(\"newTodoId\"));\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/todos/{{newTodoId}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"todos",
+						"{{newTodoId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT /todos/{{newTodoId}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Todo is marked as done: true\", function () {\r",
+							"    pm.expect(pm.response.json().done).to.eql(true);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\"done\": true}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseURL}}/todos/{{newTodoId}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"todos",
+						"{{newTodoId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE /todos/{{newTodoId}}",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 204 (No Content)\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response body is empty (No Content)\", function () {\r",
+							"    pm.expect(pm.response.text()).to.be.empty;\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseURL}}/todos/{{newTodoId}}",
+					"host": [
+						"{{baseURL}}"
+					],
+					"path": [
+						"todos",
+						"{{newTodoId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

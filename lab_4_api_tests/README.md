@@ -1,3 +1,4 @@
+[![Python Test and Status Pipeline](https://github.com/Samuferi/sze-test-lab/actions/workflows/ci.yaml/badge.svg)](https://github.com/Samuferi/sze-test-lab/actions/workflows/ci.yaml)
 # **API Tesztelés**
 
 ## Kiindulás
