@@ -34,3 +34,31 @@ def init_db():
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+
+@app.route("/")
+def index():
+    return "Welcome", 200
+
+@app.route("/todos", methods=["GET"])
+def get_todos():
+    db = get_db()
+    cursor = db.execute("SELECT id, task, done FROM todos")
+    rows = cursor.fetchall()
+    todos = [dict(row) for row in rows]
+    return jsonify(todos), 200
+
+@app.route("/todos", methods=["POST"])
+def create_todo():
+    data = request.get_json()
+
+    # minimális validáció a teszthez
+    task = data.get("task")
+
+    db = get_db()
+    cursor = db.execute(
+        "INSERT INTO todos (task, done) VALUES (?, ?)",
+        (task, 0)
+    )
+    db.commit()
+
+    return jsonify({"id": cursor.lastrowid, "task": task, "done": 0}), 201
