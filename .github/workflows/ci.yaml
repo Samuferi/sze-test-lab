@@ -38,3 +38,21 @@ jobs:
       - name: Run tests with pytest
         run: |
           pytest -v
+      # Step 5: Start Flask server
+      - name: 🚀 Start Flask Server in Background
+        run: |
+          # Use '&' to run the server in the background
+          # You may need to adjust the command based on your Flask file/setup (e.g., 'flask run' or 'python app.py')
+          FLASK_APP=app.py flask run &
+          # Give the server a moment to start up
+          sleep 5 
+      
+      # Step 6: Install Newman
+      - name: 📦 Install Newman (Postman CLI)
+        run: npm install -g newman
+      
+      # Step 7: Run Postman tests using Newman
+      - name: 🧪 Run Postman Tests with Newman
+        run: |
+          newman run collection.json \
+            --environment environment.json
