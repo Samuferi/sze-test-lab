@@ -3,7 +3,7 @@ from pytest_bdd import scenarios, given, when, then, parsers
 import json
 
 # Make the Flask app and its in-memory data store accessible to the tests
-from lab_2_bdd.app import app, todos
+from lab_4_api_tests.app import app, todos
 
 # Constants
 EXISTING_TODO = {"id": 2, "task": "Build a Flask API", "done": True}
@@ -23,7 +23,6 @@ def response(client):
     """A fixture to store the response from an API call."""
     return {}
 
-
 # Given Steps
 @given('the API has a to-do with id 2 and task "Build a Flask API"')
 def setup_existing_todo():
@@ -42,9 +41,9 @@ def setup_any_todos():
     todos[:] = [
         {"id": 1, "task": "Learn TDD", "done": False},
         {"id": 2, "task": "Build a Flask API", "done": True},
-        {"id": 3, "task": "Example TODO", "done": False},
     ]
 
+# When Steps
 @when(parsers.parse('the user requests the to-do with id {todo_id}'))
 def get_single_todo(client, response, todo_id):
     """Make a GET request to the /todos/<id> endpoint."""
@@ -68,16 +67,3 @@ def check_response_for_not_found(response):
     """Check the content of the response for a 404 error."""
     assert 'error' in response['data']
     assert 'not found' in response['data']['error'].lower()
-
-@when(parsers.parse('the user deletes the to-do with id {todo_id}'))
-def delete_single_todo(client, response, todo_id):
-    """Send DELETE request."""
-    res = client.delete(f'/todos/{todo_id}')
-    response['data'] = res.get_json()
-    response['status_code'] = res.status_code
-
-@then('the response should indicate successful deletion')
-def check_successful_deletion(response):
-    """The API should confirm the deletion."""
-    assert 'message' in response['data']
-    assert response['data']['message'].lower() == "todo deleted"

@@ -1,94 +1,82 @@
 from flask import Flask, jsonify, request
+# Opcionális, de ajánlott, ha böngészőből tesztelsz, a CORS hibák elkerülésére
+# Telepítés: pip install flask-cors
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app) # Engedélyezi a cross-origin kéréseket minden domainről
 
-# In-memory data store
+# Memóriában tárolt adatok (In-memory data store)
 todos = [
     {"id": 1, "task": "Learn TDD", "done": False},
     {"id": 2, "task": "Build a Flask API", "done": True},
 ]
 
+def _get_next_id():
+    """
+    Segédfüggvény a következő ID generálásához.
+    """
+    if not todos:
+        return 1
+    return max(item['id'] for item in todos) + 1
+
 @app.route('/')
 def index():
     """
-    Welcome endpoint.
+    Üdvözlő végpont.
     """
-    # MISTAKE 1
-    """ return jsonify({}) """
-    return "Welcome", 200
+    return "Welcome to the To-Do API. Használd a /todos végpontot."
 
 @app.route('/todos' , methods=['GET', 'POST'])
 def handle_todos():
     """
-    Handles fetching all to-dos (GET) and creating a new to-do (POST).
+    Kezeli az összes teendő lekérését (GET) és új teendő létrehozását (POST).
     """
     if request.method == 'POST':
-        # MISTAKE 2
-        """ if not request.json or 'name' not in request.json: """
+        # Validáció: van-e JSON és 'task' mező
         if not request.json or 'task' not in request.json:
             return jsonify({"error": "Missing task data"}), 400
         
         new_todo = {
             'id': _get_next_id(),
             'task': request.json['task'],
-            'done': False
+            'done': False  # Alapértelmezetten nincs kész
         }
         todos.append(new_todo)
-        # MISTAKE 3
-        """ return jsonify(new_todo), 200 """
         return jsonify(new_todo), 201
-
     
-    # MISTAKE 4
-    """ return todos """
-    return jsonify(todos), 200
+    # GET kérés kezelése
+    return jsonify(todos)
 
 
-
-# MISTAKE 5
-""" @app.route('/todos/<todo_id>', methods=['GET', 'PUT', 'DELETE']) """
 @app.route('/todos/<int:todo_id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_single_todo(todo_id):
     """
-    Handles GET, PUT, and DELETE requests for a single to-do item by its ID.
+    Kezeli az egyedi teendőre vonatkozó GET, PUT, DELETE kéréseket ID alapján.
     """
+    # Keresd meg a teendőt
     todo = next((item for item in todos if item["id"] == todo_id), None)
     
+    # Ha nincs meg, 404
     if not todo:
         return jsonify({"error": f"Todo with id {todo_id} not found"}), 404
         
     if request.method == 'GET':
-        # MISTAKE 6
-        """ return jsonify(todos), 200 """
         return jsonify(todo), 200
 
     if request.method == 'PUT':
+        # Validáció: van-e JSON törzs
         if not request.json:
             return jsonify({"error": "Missing JSON body"}), 400
         
-        # MISTAKE 7
-        todo['task'] = request.json.get('task', todo['task'])
-        """ todo['done'] = False """
-        todo['done'] = request.json.get('done', todo['done'])
+        # Frissíti a 'task' és/vagy 'done' mezőket
+        todo.update(request.json)
         return jsonify(todo), 200
 
     if request.method == 'DELETE':
-        # MISTAKE 8
-        """ todos.pop(0) """
         todos.remove(todo)
-
-        # MISTAKE 9
-        """ return jsonify({"message": "Deleted"}), 200 """
+        # 204 No Content: Sikeres törlés, nincs visszatérési törzs
         return '', 204
 
-
-
-def _get_next_id():
-    """
-    A helper function to get the next ID for a new todo.
-    """
-    if not todos:
-        return 1
-    # MISTAKE 10
-    """ return max(item['id'] for item in todos) """
-    return max(item['id'] for item in todos) + 1
+if __name__ == '__main__':
+    app.run(debug=True)

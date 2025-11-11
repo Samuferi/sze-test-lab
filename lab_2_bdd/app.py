@@ -24,3 +24,24 @@ def get_todos():
         }
         todos.append(new_todo)
         return jsonify(new_todo), 201
+
+@app.route('/todos/<int:todo_id>', methods=['GET', 'DELETE'])
+def handle_single_todo(todo_id):
+    """
+    Handles GET and DELETE requests for a single to-do item by its ID.
+    """
+    # Find the todo with the matching ID
+    todo = next((item for item in todos if item["id"] == todo_id), None)
+
+    if request.method == 'GET':
+        if todo:
+            return jsonify(todo), 200
+        else:
+            return jsonify({"error": f"Todo with id {todo_id} not found"}), 404
+
+    if request.method == 'DELETE':
+        if todo:
+            todos.remove(todo)
+            return jsonify({"message": "Todo deleted"}), 200
+        else:
+            return jsonify({"error": f"Todo with id {todo_id} not found"}), 404
