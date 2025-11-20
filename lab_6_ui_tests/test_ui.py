@@ -21,7 +21,7 @@ class TodoUITest(unittest.TestCase):
         # The full path to the index.html file.
         # Change this if index.html is located elsewhere!
         file_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "index.html"))
-        self.driver.get(f"file://{file_path}")
+        self.driver.get(f"index.html")
 
     def tearDown(self):
         """
@@ -37,8 +37,8 @@ class TodoUITest(unittest.TestCase):
         """
         print("Test 1: Page Load and Initial Todos")
         # ATTENTION: The AI-generated code might use different selectors!
-        # Update the "todo-list" ID if necessary.
-        list_selector = (By.ID, "todo-list")
+        # Update the "todoList" ID if necessary.
+        list_selector = (By.ID, "todoList")
         
         # Wait max 5 seconds for the list element to appear
         WebDriverWait(self.driver, 5).until(
@@ -53,10 +53,10 @@ class TodoUITest(unittest.TestCase):
         # Wait until the list contains at least 2 elements (from the API)
         # This assumes the <li> elements are direct children of the list.
         WebDriverWait(self.driver, 5).until(
-            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#todo-list li")) >= 2
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#todoList li")) >= 2
         )
         
-        todos = self.driver.find_elements(By.CSS_SELECTOR, "#todo-list li")
+        todos = self.driver.find_elements(By.CSS_SELECTOR, "#todoList li")
         self.assertGreaterEqual(len(todos), 2)
         print("Success: Initial todos loaded.")
 
@@ -66,16 +66,16 @@ class TodoUITest(unittest.TestCase):
         """
         print("Test 2: Add New Todo")
         # UPDATED Selectors for the new HTML
-        input_selector = (By.ID, "todo-input")
-        button_selector = (By.ID, "add-todo-btn")
-        list_selector = (By.ID, "todo-list")
+        input_selector = (By.ID, "taskInput")
+        button_selector = (By.ID, "addBtn")
+        list_selector = (By.ID, "todoList")
 
         # Find the elements
         task_input = self.driver.find_element(*input_selector)
         add_button = self.driver.find_element(*button_selector)
         
         # Get the number of todos before adding
-        initial_count = len(self.driver.find_elements(By.CSS_SELECTOR, "#todo-list li"))
+        initial_count = len(self.driver.find_elements(By.CSS_SELECTOR, "#todoList li"))
 
         # Add a new todo
         new_task_name = "New test todo"
@@ -96,13 +96,13 @@ class TodoUITest(unittest.TestCase):
 
         # Várunk, amíg az új elem megjelenik a listában (a lista elemszáma megnő)
         WebDriverWait(self.driver, 5).until(
-            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#todo-list li")) > initial_count
+            lambda d: len(d.find_elements(By.CSS_SELECTOR, "#todoList li")) > initial_count
         )
 
         # --- JAVÍTÁS 2: A sorbarendezés kezelése ---
         # Nem ellenőrizhetjük a "last-child"-ot, mert a lista rendezve van.
         # Helyette lekérjük az összes teendő szövegét és megnézzük, benne van-e az új.
-        all_task_texts = [el.text for el in self.driver.find_elements(By.CSS_SELECTOR, "#todo-list li .task-text")]
+        all_task_texts = [el.text for el in self.driver.find_elements(By.CSS_SELECTOR, "#todoList li .task-text")]
         self.assertIn(new_task_name, all_task_texts)
         print("Success: New todo added.")
 
@@ -113,8 +113,8 @@ class TodoUITest(unittest.TestCase):
         """
         print("Test 3: Complete Todo")
         # UPDATED: We now look for the clickable div, not a checkbox
-        first_todo_li_selector = (By.CSS_SELECTOR, "#todo-list li:first-child")
-        toggle_selector = (By.CSS_SELECTOR, "#todo-list li:first-child .toggle-check")
+        first_todo_li_selector = (By.CSS_SELECTOR, "#todoList li:first-child")
+        toggle_selector = (By.CSS_SELECTOR, "#todoList li:first-child .toggle-check")
         
         # Wait for the first todo (and the toggle div in it) to appear
         toggle_element = WebDriverWait(self.driver, 5).until(
@@ -150,7 +150,7 @@ class TodoUITest(unittest.TestCase):
         # ATTENTION: The selector (e.g., 'delete-btn' class) might change!
         # This test clicks the delete button of the first todo.
         
-        list_selector_css = "#todo-list li"
+        list_selector_css = "#todoList li"
         
         # Wait until there is at least one element in the list
         WebDriverWait(self.driver, 5).until(
@@ -162,7 +162,7 @@ class TodoUITest(unittest.TestCase):
 
         # The new HTML uses .delete-btn class, so the original selector is correct.
         # We remove the try/except block as the XPath fallback is no longer valid (button has no text).
-        delete_button_selector = (By.CSS_SELECTOR, "#todo-list li:first-child .delete-btn") # Example selector
+        delete_button_selector = (By.CSS_SELECTOR, "#todoList li:first-child .delete-btn") # Example selector
         
         delete_button = self.driver.find_element(*delete_button_selector)
         

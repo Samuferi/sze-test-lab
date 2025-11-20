@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask To-Do App</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --bg-color: #f4f4f9;
+            --item-bg: #ffffff;
+            --text-color: #333;
+            --danger-color: #e74c3c;
+            --success-color: #2ecc71;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            padding-top: 50px;
+            margin: 0;
+        }
+
+        .container {
+            background: var(--item-bg);
+            width: 400px;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        button#addBtn {
+            padding: 10px 20px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button#addBtn:hover {
+            background-color: #357abd;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: background 0.2s;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        li:hover {
+            background-color: #fafafa;
+        }
+
+        .todo-content {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .task-text {
+            font-size: 16px;
+        }
+
+        /* Style for completed tasks */
+        li.completed .task-text {
+            text-decoration: line-through;
+            color: #888;
+        }
+
+        .delete-btn {
+            background-color: transparent;
+            color: var(--danger-color);
+            border: 1px solid var(--danger-color);
+            border-radius: 4px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .delete-btn:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .status-msg {
+            text-align: center;
+            font-size: 0.9em;
+            margin-top: 10px;
+            min-height: 20px;
+        }
+        .error { color: var(--danger-color); }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>My To-Do List</h1>
+    
+    <div class="input-group">
+        <input type="text" id="taskInput" placeholder="What needs to be done?">
+        <button id="addBtn">Add</button>
+    </div>
+
+    <ul id="todoList">
+        <!-- Items will be injected here by JS -->
+    </ul>
+
+    <div id="statusMsg" class="status-msg"></div>
+</div>
+
+<script>
+    const API_URL = 'http://127.0.0.1:5000/todos';
+    const taskInput = document.getElementById('taskInput');
+    const todoList = document.getElementById('todoList');
+    const addBtn = document.getElementById('addBtn');
+    const statusMsg = document.getElementById('statusMsg');
+
+    // --- API Functions ---
+
+    // Fetch all todos
+    async function fetchTodos() {
+        try {
+            const response = await fetch(API_URL);
+            if (!response.ok) throw new Error('Failed to fetch');
+            const todos = await response.json();
+            renderTodos(todos);
+            clearStatus();
+        } catch (error) {
+            showError('Could not connect to backend. Is Flask running?');
+        }
+    }
+
+    // Add a new todo
+    async function addTodo() {
+        const task = taskInput.value.trim();
+        if (!task) return;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ task: task })
+            });
+
+            if (response.ok) {
+                taskInput.value = ''; // Clear input
+                fetchTodos(); // Refresh list
+            } else {
+                showError('Failed to add task');
+            }
+        } catch (error) {
+            showError('Error sending data');
+        }
+    }
+
+    // Toggle done status (PUT)
+    async function toggleTodo(id, currentStatus) {
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ done: !currentStatus })
+            });
+
+            if (response.ok) {
+                fetchTodos();
+            } else {
+                showError('Failed to update task');
+            }
+        } catch (error) {
+            showError('Error updating task');
+        }
+    }
+
+    // Delete a todo (DELETE)
+    async function deleteTodo(id) {
+        // Prevent event bubbling causing toggle
+        event.stopPropagation(); 
+
+        if(!confirm("Are you sure you want to delete this?")) return;
+
+        try {
+            const response = await fetch(`${API_URL}/${id}`, {
+                method: 'DELETE'
+            });
+
+            if (response.status === 204 || response.ok) {
+                fetchTodos();
+            } else {
+                showError('Failed to delete task');
+            }
+        } catch (error) {
+            showError('Error deleting task');
+        }
+    }
+
+    // --- UI Functions ---
+
+    function renderTodos(todos) {
+        todoList.innerHTML = '';
+        
+        if (todos.length === 0) {
+            todoList.innerHTML = '<li style="justify-content:center; color:#888;">No tasks yet!</li>';
+            return;
+        }
+
+        todos.forEach(todo => {
+            const li = document.createElement('li');
+            if (todo.done) li.classList.add('completed');
+
+            // Checkbox
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.checked = todo.done;
+            checkbox.style.cursor = 'pointer';
+            
+            // Text span
+            const span = document.createElement('span');
+            span.className = 'task-text';
+            span.textContent = todo.task;
+
+            // Group checkbox and text for clickability
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'todo-content';
+            contentDiv.appendChild(checkbox);
+            contentDiv.appendChild(span);
+            
+            // Click event to toggle status
+            contentDiv.onclick = () => toggleTodo(todo.id, todo.done);
+
+            // Delete Button
+            const delBtn = document.createElement('button');
+            delBtn.className = 'delete-btn';
+            delBtn.textContent = 'Delete';
+            delBtn.onclick = () => deleteTodo(todo.id);
+
+            li.appendChild(contentDiv);
+            li.appendChild(delBtn);
+            todoList.appendChild(li);
+        });
+    }
+
+    function showError(msg) {
+        statusMsg.textContent = msg;
+        statusMsg.className = 'status-msg error';
+    }
+
+    function clearStatus() {
+        statusMsg.textContent = '';
+        statusMsg.className = 'status-msg';
+    }
+
+    // --- Event Listeners ---
+
+    addBtn.addEventListener('click', addTodo);
+
+    // Allow pressing "Enter" to add task
+    taskInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+            addTodo();
+        }
+    });
+
+    // Initial load
+    fetchTodos();
+
+</script>
+
+</body>
+</html>
